@@ -4,7 +4,7 @@ cc_library {
     recovery_available: true,
     cflags: [
         "-Werror",
-        "-O2",
+        "-O3",
         "-DWANT_ROUNDING=0",
         "-DWANT_ERRNO=0",
         "-DFLT_EVAL_METHOD=0",
