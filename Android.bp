@@ -39,15 +39,6 @@ cc_library {
         "math/sinf.c",
     ],
 
-    // arch-specific settings
-    arch: {
-        arm64: {
-            cflags: [
-                "-DHAVE_FAST_FMA=1",
-            ],
-        },
-    },
-
     target: {
         darwin: {
             enabled: false,
