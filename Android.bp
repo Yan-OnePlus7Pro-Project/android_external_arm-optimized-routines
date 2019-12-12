@@ -4,6 +4,8 @@ cc_library {
     recovery_available: true,
     cflags: [
         "-Werror",
+        "-Wno-unused-parameter",
+        "-Wno-unused-variable",
         "-O3",
         "-DWANT_ROUNDING=0",
         "-DWANT_ERRNO=0",
