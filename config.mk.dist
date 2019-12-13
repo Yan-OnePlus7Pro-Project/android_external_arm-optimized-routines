@@ -12,8 +12,8 @@ CFLAGS = -std=c99 -pipe -O3
 CFLAGS += -Wall -Wno-missing-braces
 
 # Enable debug info.
-HOST_CFLAGS += -g
-CFLAGS += -g
+HOST_CFLAGS += -g0
+CFLAGS += -g0
 
 # Use if the target FPU only supports single precision.
 #CFLAGS += WANT_SINGLEPREC
