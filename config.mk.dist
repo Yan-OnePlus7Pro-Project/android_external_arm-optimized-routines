@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: MIT
 
 HOST_CC = gcc
-HOST_CFLAGS = -std=c99 -O2
+HOST_CFLAGS = -std=c99 -O3
 HOST_CFLAGS += -Wall -Wno-unused-function
 
 CC = $(CROSS_COMPILE)gcc
