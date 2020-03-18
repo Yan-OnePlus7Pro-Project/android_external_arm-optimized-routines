@@ -12,12 +12,17 @@
 #include <stdint.h>
 
 #ifndef WANT_ROUNDING
-/* Correct special case results in non-nearest rounding modes.  */
+/* If defined to 1, return correct results for special cases in non-nearest
+   rounding modes (logf (1.0f) returns 0.0f with FE_DOWNWARD rather than -0.0f).
+   This may be set to 0 if there is no fenv support or if math functions only
+   get called in round to nearest mode.  */
 # define WANT_ROUNDING 1
 #endif
 #ifndef WANT_ERRNO
-/* Set errno according to ISO C with (math_errhandling & MATH_ERRNO) != 0.  */
-# define WANT_ERRNO 1
+/* If defined to 1, set errno in math functions according to ISO C.  Many math
+   libraries do not set errno, so this is 0 by default.  It may need to be
+   set to 1 if math.h has (math_errhandling & MATH_ERRNO) != 0.  */
+# define WANT_ERRNO 0
 #endif
 #ifndef WANT_ERRNO_UFLOW
 /* Set errno to ERANGE if result underflows to 0 (in all rounding modes).  */
@@ -49,6 +54,42 @@
 # else
 #   define HAVE_FAST_FMA 0
 # endif
+#endif
+
+/* Provide *_finite symbols and some of the glibc hidden symbols
+   so libmathlib can be used with binaries compiled against glibc
+   to interpose math functions with both static and dynamic linking.  */
+#ifndef USE_GLIBC_ABI
+# if __GNUC__
+#   define USE_GLIBC_ABI 1
+# else
+#   define USE_GLIBC_ABI 0
+# endif
+#endif
+
+/* Optionally used extensions.  */
+#ifdef __GNUC__
+# define HIDDEN __attribute__ ((__visibility__ ("hidden")))
+# define NOINLINE __attribute__ ((noinline))
+# define UNUSED __attribute__ ((unused))
+# define likely(x) __builtin_expect (!!(x), 1)
+# define unlikely(x) __builtin_expect (x, 0)
+# if __GNUC__ >= 9
+#   define attribute_copy(f) __attribute__ ((copy (f)))
+# else
+#   define attribute_copy(f)
+# endif
+# define strong_alias(f, a) \
+  extern __typeof (f) a __attribute__ ((alias (#f))) attribute_copy (f);
+# define hidden_alias(f, a) \
+  extern __typeof (f) a __attribute__ ((alias (#f), visibility ("hidden"))) \
+  attribute_copy (f);
+#else
+# define HIDDEN
+# define NOINLINE
+# define UNUSED
+# define likely(x) (x)
+# define unlikely(x) (x)
 #endif
 
 #if HAVE_FAST_ROUND
@@ -185,12 +226,12 @@ opt_barrier_double (double x)
 static inline void
 force_eval_float (float x)
 {
-  volatile float y = x;
+  volatile float y UNUSED = x;
 }
 static inline void
 force_eval_double (double x)
 {
-  volatile double y = x;
+  volatile double y UNUSED = x;
 }
 #endif
 
@@ -208,33 +249,6 @@ eval_as_double (double x)
 {
   return x;
 }
-
-/* Provide *_finite symbols and some of the glibc hidden symbols
-   so libmathlib can be used with binaries compiled against glibc
-   to interpose math functions with both static and dynamic linking.  */
-#ifndef USE_GLIBC_ABI
-# if __GNUC__
-#   define USE_GLIBC_ABI 1
-# else
-#   define USE_GLIBC_ABI 0
-# endif
-#endif
-
-#ifdef __GNUC__
-# define HIDDEN __attribute__ ((__visibility__ ("hidden")))
-# define NOINLINE __attribute__ ((noinline))
-# define likely(x) __builtin_expect (!!(x), 1)
-# define unlikely(x) __builtin_expect (x, 0)
-# define strong_alias(f, a) \
-  extern __typeof (f) a __attribute__ ((alias (#f)));
-# define hidden_alias(f, a) \
-  extern __typeof (f) a __attribute__ ((alias (#f), visibility ("hidden")));
-#else
-# define HIDDEN
-# define NOINLINE
-# define likely(x) (x)
-# define unlikely(x) (x)
-#endif
 
 /* Error handling tail calls for special cases, with a sign argument.
    The sign of the return value is set if the argument is non-zero.  */
